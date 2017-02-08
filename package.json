@@ -12,8 +12,8 @@
   "author": "Zhen Wang <z@zmxv.com> (http://blog.zmxv.com)",
   "license": "MIT",
   "dependencies": {
-    "react": "^0.14.8",
-    "react-native": "^0.22.2",
     "react-native-sound": "^0.8.0"
+    "react": "15.4.1",
+    "react-native": "0.39.2",
   }
 }

@@ -1,28 +1,28 @@
-'use strict';
+import React, {Component} from 'react';
 
-import React, {
-  Component,
+import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
-var Sound = require('react-native-sound');
+const Sound = require('react-native-sound');
 
 class MainView extends Component {
   render() {
     return <View style={styles.container}>
-             <TouchableOpacity onPress={this.playSound}>
-               <Text style={styles.button}>play</Text>
-             </TouchableOpacity>
-           </View>;
+      <TouchableOpacity onPress={this.playSound}>
+        <Text style={styles.button}>play</Text>
+      </TouchableOpacity>
+    </View>;
   }
 
   playSound() {
-    var s = new Sound('advertising.mp3', Sound.MAIN_BUNDLE, (e) => {
+    const s = new Sound('advertising.mp3', Sound.MAIN_BUNDLE, (e) => {
       if (e) {
         console.log('error', e);
       } else {
+        s.setSpeed(0.5);
         console.log('duration', s.getDuration());
         s.play();
       }
@@ -30,7 +30,7 @@ class MainView extends Component {
   }
 }
 
-var styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
