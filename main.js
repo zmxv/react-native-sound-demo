@@ -9,6 +9,13 @@ import {
 const Sound = require('react-native-sound');
 
 class MainView extends Component {
+
+  constructor(props) {
+    super(props);
+
+    Sound.setCategory('Ambient', true); // mixWithOthers
+  }
+
   render() {
     return <View style={styles.container}>
       <TouchableOpacity onPress={this.playSound}>
@@ -22,7 +29,7 @@ class MainView extends Component {
       if (e) {
         console.log('error', e);
       } else {
-        s.setSpeed(0.5);
+        s.setSpeed(1);
         console.log('duration', s.getDuration());
         s.play();
       }
