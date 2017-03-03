@@ -44,6 +44,31 @@ class MainView extends Component {
       });
     };
 
+    this.playSoundLooped = () => {
+      if (this.state.loopingSound) {
+        return;
+      }
+      const s = new Sound('advertising.mp3', Sound.MAIN_BUNDLE, (e) => {
+        if (e) {
+          console.log('error', e);
+        }
+        s.setNumberOfLoops(-1);
+        s.play();
+      });
+      this.setState({loopingSound: s});
+    };
+
+    this.stopSoundLooped = () => {
+      if (!this.state.loopingSound) {
+        return;
+      }
+
+      this.state.loopingSound
+        .stop()
+        .release();
+      this.setState({loopingSound: null});
+    };
+
     this.playSoundFromRequire = () => {
       const s = new Sound(requireAudio, (e) => {
         if (e) {
@@ -55,8 +80,9 @@ class MainView extends Component {
       });
     };
 
-
-
+    this.state = {
+      loopingSound: undefined,
+    };
   }
 
   renderiOSOnlyFeatures() {
@@ -68,6 +94,10 @@ class MainView extends Component {
   render() {
     return <View style={styles.container}>
       <Feature title="Main bundle audio" onPress={this.playSoundBundle}/>
+      {this.state.loopingSound
+        ? <Feature title="Main bundle audio (looped)" buttonLabel={'STOP'} onPress={this.stopSoundLooped}/>
+        : <Feature title="Main bundle audio (looped)" buttonLabel={'PLAY'} onPress={this.playSoundLooped}/>
+      }
       { Platform.OS === 'ios' ? this.renderiOSOnlyFeatures() : null }
     </View>
   }
