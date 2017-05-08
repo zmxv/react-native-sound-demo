@@ -1,6 +1,6 @@
 {
   "name": "react-native-sound-demo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "react-native-sound demo project",
   "repository": {
     "type": "git",
@@ -14,6 +14,6 @@
   "dependencies": {
     "react": "^15.4.2",
     "react-native": "^0.41.2",
-    "react-native-sound": "~0.9.0"
+    "react-native-sound": "0.10.1"
   }
 }
