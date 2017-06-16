@@ -27,8 +27,6 @@ const styles = StyleSheet.create({
   },
   header: {
     textAlign: 'left',
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
   },
   feature: {
     flexDirection: 'row',
@@ -50,14 +48,21 @@ const Button = ({title, onPress}) => (
 
 const Header = ({children, style}) => <Text style={[styles.header, style]}>{children}</Text>;
 
-const Feature = ({title, onPress, description, buttonLabel = 'PLAY', win, fail}) => (
+const Feature = ({title, onPress, description, buttonLabel = 'PLAY', status}) => (
   <View style={styles.feature}>
     <Header style={{flex: 1}}>{title}</Header>
-    {win ? <Text>{'\u2713'}</Text> : null}
-    {fail ? <Text>{'\u274C'}</Text> : null}
+    {status ? <Text style={{padding:5}}>{resultIcons[status] || ''}</Text> : null}
     <Button title={buttonLabel} onPress={onPress} />
   </View>
 );
+
+const resultIcons = {
+  '': '',
+  pending: '?',
+  playing: '\u25B6',
+  win: '\u2713',
+  fail: '\u274C',
+};
 
 const audioTests = [
   {
@@ -71,7 +76,6 @@ const audioTests = [
     basePath: Sound.MAIN_BUNDLE,
     onPrepared: (sound, component) => {
       sound.setNumberOfLoops(-1);
-      component.setState({tests: {...component.state.tests, ['mp3 in bundle (looped)']: true}});
       component.setState({loopingSound: sound});
     },
   },
@@ -105,16 +109,18 @@ const audioTests = [
  * Generic play function for majority of tests
  */
 function playSound(testInfo, component) {
+  component.setState({tests: {...component.state.tests, [testInfo.title]: 'pending'}});
   const sound = new Sound(testInfo.url, testInfo.basePath || '', e => {
     if (e) {
       Alert.alert('error', e.message);
-      component.setState({tests: {...component.state.tests, [testInfo.title]: false}});
+      component.setState({tests: {...component.state.tests, [testInfo.title]: 'fail'}});
     } else {
+      component.setState({tests: {...component.state.tests, [testInfo.title]: 'playing'}});
       // Run optional pre-play callback
       testInfo.onPrepared && testInfo.onPrepared(sound, component);
       sound.play(() => {
         // Success counts as getting to the end
-        component.setState({tests: {...component.state.tests, [testInfo.title]: true}});
+        component.setState({tests: {...component.state.tests, [testInfo.title]: 'win'}});
         // Release when it's done so we're not using up resources
         sound.release();
       });
@@ -135,7 +141,7 @@ class MainView extends Component {
       }
 
       this.state.loopingSound.stop().release();
-      this.setState({loopingSound: null, tests: {...this.state.tests, ['mp3 in bundle (looped)']: true}});
+      this.setState({loopingSound: null, tests: {...this.state.tests, ['mp3 in bundle (looped)']: 'win'}});
     };
 
     this.state = {
@@ -150,12 +156,9 @@ class MainView extends Component {
         <Header style={styles.title}>react-native-sound-demo</Header>
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
           {audioTests.map(testInfo => {
-            const win = this.state.tests[testInfo.title] === true;
-            const fail = this.state.tests[testInfo.title] === false;
             return (
               <Feature
-                win={win}
-                fail={fail}
+                status={this.state.tests[testInfo.title]}
                 key={testInfo.title}
                 title={testInfo.title}
                 onPress={() => {
