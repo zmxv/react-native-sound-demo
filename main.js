@@ -105,22 +105,26 @@ const audioTests = [
   },
 ];
 
+function setTestState(testInfo, component, status) {
+  component.setState({tests: {...component.state.tests, [testInfo.title]: status}});
+}
+
 /**
  * Generic play function for majority of tests
  */
 function playSound(testInfo, component) {
-  component.setState({tests: {...component.state.tests, [testInfo.title]: 'pending'}});
+  setTestState(testInfo, component, 'pending');
   const sound = new Sound(testInfo.url, testInfo.basePath || '', e => {
     if (e) {
       Alert.alert('error', e.message);
-      component.setState({tests: {...component.state.tests, [testInfo.title]: 'fail'}});
+      setTestState(testInfo, component, 'fail');
     } else {
-      component.setState({tests: {...component.state.tests, [testInfo.title]: 'playing'}});
+      setTestState(testInfo, component, 'playing');
       // Run optional pre-play callback
       testInfo.onPrepared && testInfo.onPrepared(sound, component);
       sound.play(() => {
         // Success counts as getting to the end
-        component.setState({tests: {...component.state.tests, [testInfo.title]: 'win'}});
+        setTestState(testInfo, component, 'win');
         // Release when it's done so we're not using up resources
         sound.release();
       });
