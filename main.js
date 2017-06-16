@@ -159,13 +159,6 @@ class MainView extends Component {
       this.setState({loopingSound: null, tests: {...this.state.tests, ['mp3 in bundle (looped)']: 'win'}});
     };
 
-    this.playRequireSound = () => {
-      const s = new Sound(require('./advertising.mp3'), () => {
-        console.log('ok');
-        s.play();
-      });
-    };
-
     this.state = {
       loopingSound: undefined,
       tests: {},
