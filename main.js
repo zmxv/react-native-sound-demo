@@ -51,7 +51,7 @@ const Header = ({children, style}) => <Text style={[styles.header, style]}>{chil
 const Feature = ({title, onPress, description, buttonLabel = 'PLAY', status}) => (
   <View style={styles.feature}>
     <Header style={{flex: 1}}>{title}</Header>
-    {status ? <Text style={{padding:5}}>{resultIcons[status] || ''}</Text> : null}
+    {status ? <Text style={{padding: 5}}>{resultIcons[status] || ''}</Text> : null}
     <Button title={buttonLabel} onPress={onPress} />
   </View>
 );
@@ -81,6 +81,7 @@ const audioTests = [
   },
   {
     title: 'mp3 via require()',
+    isRequire: true,
     url: require('./advertising.mp3'),
   },
   {
@@ -97,10 +98,12 @@ const audioTests = [
   },
   {
     title: 'aac via require()',
+    isRequire: true,
     url: require('./pew2.aac'),
   },
   {
     title: 'wav via require()',
+    isRequire: true,
     url: require('./frog.wav'),
   },
 ];
@@ -114,22 +117,30 @@ function setTestState(testInfo, component, status) {
  */
 function playSound(testInfo, component) {
   setTestState(testInfo, component, 'pending');
-  const sound = new Sound(testInfo.url, testInfo.basePath || '', e => {
-    if (e) {
-      Alert.alert('error', e.message);
+
+  const callback = (error, sound) => {
+    if (error) {
+      Alert.alert('error', error.message);
       setTestState(testInfo, component, 'fail');
-    } else {
-      setTestState(testInfo, component, 'playing');
-      // Run optional pre-play callback
-      testInfo.onPrepared && testInfo.onPrepared(sound, component);
-      sound.play(() => {
-        // Success counts as getting to the end
-        setTestState(testInfo, component, 'win');
-        // Release when it's done so we're not using up resources
-        sound.release();
-      });
+      return;
     }
-  });
+    setTestState(testInfo, component, 'playing');
+    // Run optional pre-play callback
+    testInfo.onPrepared && testInfo.onPrepared(sound, component);
+    sound.play(() => {
+      // Success counts as getting to the end
+      setTestState(testInfo, component, 'win');
+      // Release when it's done so we're not using up resources
+      sound.release();
+    });
+  };
+
+  // If the audio is a 'require' then the second parameter must be the callback.
+  if (testInfo.isRequire) {
+    const sound = new Sound(testInfo.url, error => callback(error, sound));
+  } else {
+    const sound = new Sound(testInfo.url, testInfo.basePath, error => callback(error, sound));
+  }
 }
 
 class MainView extends Component {
@@ -146,6 +157,13 @@ class MainView extends Component {
 
       this.state.loopingSound.stop().release();
       this.setState({loopingSound: null, tests: {...this.state.tests, ['mp3 in bundle (looped)']: 'win'}});
+    };
+
+    this.playRequireSound = () => {
+      const s = new Sound(require('./advertising.mp3'), () => {
+        console.log('ok');
+        s.play();
+      });
     };
 
     this.state = {
