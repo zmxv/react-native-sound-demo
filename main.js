@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 
 import {StyleSheet, Text, TouchableOpacity, View, ScrollView, Alert} from 'react-native';
-const Sound = require('react-native-sound');
+import Sound from 'react-native-sound';
 
 const styles = StyleSheet.create({
   container: {
