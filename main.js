@@ -89,12 +89,16 @@ const audioTests = [
     url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/advertising.mp3',
   },
   {
+    title: 'mp3 remote - file doesn\'t exist',
+    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/file-not-here.mp3',
+  },
+  {
     title: 'aac remote download',
-    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/update_0.10.2/pew2.aac',
+    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/pew2.aac',
   },
   {
     title: 'wav remote download',
-    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/update_0.10.2/frog.wav',
+    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/frog.wav',
   },
   {
     title: 'aac via require()',
