@@ -1,13 +1,46 @@
 import React, {Component} from 'react';
 
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Platform,
-} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View, ScrollView, Alert} from 'react-native';
 const Sound = require('react-native-sound');
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContainer: {},
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    paddingTop: 30,
+    padding: 20,
+    textAlign: 'center',
+    backgroundColor: 'rgba(240,240,240,1)',
+  },
+  button: {
+    fontSize: 20,
+    backgroundColor: 'rgba(220,220,220,1)',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(80,80,80,0.5)',
+    overflow: 'hidden',
+    padding: 7,
+  },
+  header: {
+    textAlign: 'left',
+    borderBottomWidth: 1,
+    borderBottomColor: 'black',
+  },
+  feature: {
+    flexDirection: 'row',
+    padding: 10,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: 'rgb(180,180,180)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgb(230,230,230)',
+  },
+});
 
 const Button = ({title, onPress}) => (
   <TouchableOpacity onPress={onPress}>
@@ -15,114 +48,119 @@ const Button = ({title, onPress}) => (
   </TouchableOpacity>
 );
 
-const Header = ({children}) => (<Text style={styles.header}>{children}</Text>);
+const Header = ({children, style}) => <Text style={[styles.header, style]}>{children}</Text>;
 
-const Feature = ({title, onPress, description, buttonLabel = "PLAY"}) => (
+const Feature = ({title, onPress, description, buttonLabel = 'PLAY', win, fail}) => (
   <View style={styles.feature}>
-    <Header>{title}</Header>
-    <Button title={buttonLabel} onPress={onPress}/>
-  </View>);
+    <Header style={{flex: 1}}>{title}</Header>
+    {win ? <Text>{'\u2713'}</Text> : null}
+    {fail ? <Text>{'\u274C'}</Text> : null}
+    <Button title={buttonLabel} onPress={onPress} />
+  </View>
+);
 
-const requireAudio = require('./advertising.mp3');
+const audioTests = [
+  {
+    title: 'mp3 in bundle',
+    url: 'advertising.mp3',
+    basePath: Sound.MAIN_BUNDLE,
+  },
+  {
+    title: 'mp3 in bundle (looped)',
+    url: 'advertising.mp3',
+    basePath: Sound.MAIN_BUNDLE,
+    onPrepared: (sound, component) => {
+      sound.setNumberOfLoops(-1);
+      component.setState({tests: {...component.state.tests, ['mp3 in bundle (looped)']: true}});
+      component.setState({loopingSound: sound});
+    },
+  },
+  {
+    title: 'mp3 via require()',
+    url: require('./advertising.mp3'),
+  },
+  {
+    title: 'mp3 remote download',
+    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/advertising.mp3',
+  },
+  {
+    title: 'aac remote download',
+    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/pew2.mp3',
+  },
+  {
+    title: 'aac via require()',
+    url: require('./pew2.aac'),
+  },
+];
+
+/**
+ * Generic play function for majority of tests
+ */
+function playSound(testInfo, component) {
+  const sound = new Sound(testInfo.url, testInfo.basePath || '', e => {
+    if (e) {
+      Alert.alert('error', e.message);
+      component.setState({tests: {...component.state.tests, [testInfo.title]: false}});
+    } else {
+      // Run optional pre-play callback
+      testInfo.onPrepared && testInfo.onPrepared(sound, component);
+      sound.play(() => {
+        // Success counts as getting to the end
+        component.setState({tests: {...component.state.tests, [testInfo.title]: true}});
+        // Release when it's done so we're not using up resources
+        sound.release();
+      });
+    }
+  });
+}
 
 class MainView extends Component {
-
   constructor(props) {
     super(props);
 
-    Sound.setCategory('Ambient', true); // true = mixWithOthers
+    Sound.setCategory('Playback', true); // true = mixWithOthers
 
-    this.playSoundBundle = () => {
-      const s = new Sound('advertising.mp3', Sound.MAIN_BUNDLE, (e) => {
-        if (e) {
-          console.log('error', e);
-        } else {
-          s.setSpeed(1);
-          console.log('duration', s.getDuration());
-          s.play(() => s.release()); // Release when it's done so we're not using up resources
-        }
-      });
-    };
-
-    this.playSoundLooped = () => {
-      if (this.state.loopingSound) {
-        return;
-      }
-      const s = new Sound('advertising.mp3', Sound.MAIN_BUNDLE, (e) => {
-        if (e) {
-          console.log('error', e);
-        }
-        s.setNumberOfLoops(-1);
-        s.play();
-      });
-      this.setState({loopingSound: s});
-    };
-
+    // Special case for stopping
     this.stopSoundLooped = () => {
       if (!this.state.loopingSound) {
         return;
       }
 
-      this.state.loopingSound
-        .stop()
-        .release();
-      this.setState({loopingSound: null});
-    };
-
-    this.playSoundFromRequire = () => {
-      const s = new Sound(requireAudio, (e) => {
-        if (e) {
-          console.log('error', e);
-          return;
-        }
-
-        s.play(() => s.release());
-      });
+      this.state.loopingSound.stop().release();
+      this.setState({loopingSound: null, tests: {...this.state.tests, ['mp3 in bundle (looped)']: true}});
     };
 
     this.state = {
       loopingSound: undefined,
+      tests: {},
     };
   }
 
-  renderiOSOnlyFeatures() {
-    return [
-      <Feature key="require" title="Audio via 'require' statement" onPress={this.playSoundFromRequire}/>,
-    ]
-  }
-
   render() {
-    return <View style={styles.container}>
-      <Feature title="Main bundle audio" onPress={this.playSoundBundle}/>
-      {this.state.loopingSound
-        ? <Feature title="Main bundle audio (looped)" buttonLabel={'STOP'} onPress={this.stopSoundLooped}/>
-        : <Feature title="Main bundle audio (looped)" buttonLabel={'PLAY'} onPress={this.playSoundLooped}/>
-      }
-      { Platform.OS === 'ios' ? this.renderiOSOnlyFeatures() : null }
-    </View>
+    return (
+      <View style={styles.container}>
+        <Header style={styles.title}>react-native-sound-demo</Header>
+        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
+          {audioTests.map(testInfo => {
+            const win = this.state.tests[testInfo.title] === true;
+            const fail = this.state.tests[testInfo.title] === false;
+            return (
+              <Feature
+                win={win}
+                fail={fail}
+                key={testInfo.title}
+                title={testInfo.title}
+                onPress={() => {
+                  return playSound(testInfo, this);
+                }}
+              />
+            );
+          })}
+          <Feature title="mp3 in bundle (looped)" buttonLabel={'STOP'} onPress={this.stopSoundLooped} />
+        </ScrollView>
+      </View>
+    );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button: {
-    fontSize: 20,
-    backgroundColor: 'silver',
-    padding: 5,
-  },
-  header: {
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
-  },
-  feature: {
-    padding: 20,
-    alignSelf: 'stretch',
-  }
-});
 
 export default MainView;
