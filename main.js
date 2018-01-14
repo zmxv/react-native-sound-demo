@@ -1,44 +1,13 @@
 import React, {Component} from 'react';
-
-import {StyleSheet, Text, TouchableOpacity, View, ScrollView, Alert} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+  Alert
+} from 'react-native';
 import Sound from 'react-native-sound';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContainer: {},
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    paddingTop: 30,
-    padding: 20,
-    textAlign: 'center',
-    backgroundColor: 'rgba(240,240,240,1)',
-  },
-  button: {
-    fontSize: 20,
-    backgroundColor: 'rgba(220,220,220,1)',
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(80,80,80,0.5)',
-    overflow: 'hidden',
-    padding: 7,
-  },
-  header: {
-    textAlign: 'left',
-  },
-  feature: {
-    flexDirection: 'row',
-    padding: 10,
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: 'rgb(180,180,180)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgb(230,230,230)',
-  },
-});
 
 const Button = ({title, onPress}) => (
   <TouchableOpacity onPress={onPress}>
@@ -79,47 +48,13 @@ const audioTests = [
       component.setState({loopingSound: sound});
     },
   },
-  {
-    title: 'mp3 via require()',
-    isRequire: true,
-    url: require('./advertising.mp3'),
-  },
-  {
-    title: 'mp3 remote download',
-    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/advertising.mp3',
-  },
-  {
-    title: 'mp3 remote - file doesn\'t exist',
-    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/file-not-here.mp3',
-  },
-  {
-    title: 'aac remote download',
-    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/pew2.aac',
-  },
-  {
-    title: 'wav remote download',
-    url: 'https://raw.githubusercontent.com/zmxv/react-native-sound-demo/master/frog.wav',
-  },
-  {
-    title: 'aac via require()',
-    isRequire: true,
-    url: require('./pew2.aac'),
-  },
-  {
-    title: 'wav via require()',
-    isRequire: true,
-    url: require('./frog.wav'),
-  },
 ];
 
-function setTestState(testInfo, component, status) {
+setTestState = (testInfo, component, status) => {
   component.setState({tests: {...component.state.tests, [testInfo.title]: status}});
 }
 
-/**
- * Generic play function for majority of tests
- */
-function playSound(testInfo, component) {
+playSound = (testInfo, component) => {
   setTestState(testInfo, component, 'pending');
 
   const callback = (error, sound) => {
@@ -129,17 +64,13 @@ function playSound(testInfo, component) {
       return;
     }
     setTestState(testInfo, component, 'playing');
-    // Run optional pre-play callback
     testInfo.onPrepared && testInfo.onPrepared(sound, component);
     sound.play(() => {
-      // Success counts as getting to the end
       setTestState(testInfo, component, 'win');
-      // Release when it's done so we're not using up resources
       sound.release();
     });
   };
 
-  // If the audio is a 'require' then the second parameter must be the callback.
   if (testInfo.isRequire) {
     const sound = new Sound(testInfo.url, error => callback(error, sound));
   } else {
@@ -192,5 +123,42 @@ class MainView extends Component {
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContainer: {},
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    paddingTop: 30,
+    padding: 20,
+    textAlign: 'center',
+    backgroundColor: 'rgba(240,240,240,1)',
+  },
+  button: {
+    fontSize: 20,
+    backgroundColor: 'rgba(220,220,220,1)',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(80,80,80,0.5)',
+    overflow: 'hidden',
+    padding: 7,
+  },
+  header: {
+    textAlign: 'left',
+  },
+  feature: {
+    flexDirection: 'row',
+    padding: 10,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: 'rgb(180,180,180)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgb(230,230,230)',
+  },
+});
 
 export default MainView;
