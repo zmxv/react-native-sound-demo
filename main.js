@@ -48,7 +48,7 @@ const Button = ({title, onPress}) => (
 
 const Header = ({children, style}) => <Text style={[styles.header, style]}>{children}</Text>;
 
-const Feature = ({title, onPress, description, buttonLabel = 'PLAY', status}) => (
+const Feature = ({title, onPress, buttonLabel = 'PLAY', status}) => (
   <View style={styles.feature}>
     <Header style={{flex: 1}}>{title}</Header>
     {status ? <Text style={{padding: 5}}>{resultIcons[status] || ''}</Text> : null}
